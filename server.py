@@ -72,20 +72,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     raise
                 continue
         else:
-            raise subprocess.CalledProcessError(1, cmd, output=last_err or "all clients failed")
-            data = json.loads(out)
-            resp = {
-                "id": data.get("id"),
-                "title": data.get("title"),
-                "uploader": data.get("uploader") or data.get("channel"),
-                "thumbnail": data.get("thumbnail") or (data.get("thumbnails",[{}])[-1].get("url") if data.get("thumbnails") else ""),
-                "thumbnails": data.get("thumbnails",[]) ,
-                "duration": data.get("duration"),
-                "duration_string": data.get("duration_string"),
-                "view_count": data.get("view_count"),
-                "formats": [{"format_id":f.get("format_id"), "ext":f.get("ext"), "height":f.get("height"), "vcodec":f.get("vcodec"), "acodec":f.get("acodec"), "filesize":f.get("filesize")} for f in data.get("formats",[])[:50]],
-            }
-            self.send_json(200, resp)
+            raise subprocess.CalledProcessError(1, base, output=last_err or "all clients failed")
+        data = json.loads(out)
+        resp = {
+            "id": data.get("id"),
+            "title": data.get("title"),
+            "uploader": data.get("uploader") or data.get("channel"),
+            "thumbnail": data.get("thumbnail") or (data.get("thumbnails",[{}])[-1].get("url") if data.get("thumbnails") else ""),
+            "thumbnails": data.get("thumbnails",[]) ,
+            "duration": data.get("duration"),
+            "duration_string": data.get("duration_string"),
+            "view_count": data.get("view_count"),
+            "formats": [{"format_id":f.get("format_id"), "ext":f.get("ext"), "height":f.get("height"), "vcodec":f.get("vcodec"), "acodec":f.get("acodec"), "filesize":f.get("filesize")} for f in data.get("formats",[])[:50]],
+        }
+        self.send_json(200, resp)
         except subprocess.CalledProcessError as e:
             print(e.output[:2000])
             self.send_json(500, {"error":"yt-dlp failed", "detail": e.output[:1500]})
