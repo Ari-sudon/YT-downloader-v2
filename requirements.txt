@@ -1,0 +1,1 @@
+# no pip deps needed — yt-dlp is bundled binary, ffmpeg preinstalled on Render
