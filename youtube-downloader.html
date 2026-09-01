@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YT Glass — YouTube Video & Music Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=SF+Pro+Rounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="yt-glass.css">
+</head>
+<body>
+  <canvas id="cityCanvas"></canvas>
+  
+  <div class="noise-overlay" id="noiseOverlay"></div>
+
+  <main class="glass-container" id="glassContainer">
+    <header class="glass-header">
+      <div class="header-left">
+        <div class="logo">
+          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect x="4" y="4" width="24" height="24" rx="6" fill="currentColor"/>
+            <path d="M10 10h12v12H10z" fill="white" opacity="0.9"/>
+            <path d="M13 13v6l6-3-6-3z" fill="#FF0000"/>
+          </svg>
+        </div>
+        <h1>YT Glass</h1>
+      </div>
+      <div class="header-right">
+        <button class="glass-icon-btn" id="themeToggle" aria-label="Toggle theme">
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="glass-icon-btn" id="infoToggle" aria-label="Show info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="glass-main">
+      <div class="input-card glass-card" id="inputCard">
+        <div class="card-header">
+          <span class="card-icon">🔗</span>
+          <h2>Paste YouTube URL</h2>
+        </div>
+        <div class="input-wrapper">
+          <input 
+            type="url" 
+            id="urlInput" 
+            placeholder="https://youtube.com/watch?v=... or youtu.be/..." 
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="YouTube URL"
+          >
+          <button class="glass-btn primary-btn" id="fetchBtn" aria-label="Fetch video info">
+            <span class="btn-text">Fetch Info</span>
+            <span class="btn-loader" aria-hidden="true">
+              <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+        <p class="input-hint">Supports videos, shorts, playlists, and music</p>
+      </div>
+
+      <div class="info-card glass-card hidden" id="infoCard">
+        <div class="video-preview">
+          <div class="thumbnail-wrapper">
+            <img id="videoThumbnail" alt="Video thumbnail" loading="lazy">
+            <div class="duration-badge" id="durationBadge"></div>
+            <button class="play-preview-btn" id="playPreview" aria-label="Play preview">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
+          <div class="video-meta">
+            <h3 id="videoTitle">Video Title</h3>
+            <p class="channel-info">
+              <img id="channelAvatar" class="channel-avatar" alt="">
+              <span id="channelName">Channel Name</span>
+              <span class="dot-separator"></span>
+              <span id="viewCount">0 views</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="format-card glass-card hidden" id="formatCard">
+        <div class="card-header">
+          <span class="card-icon">📥</span>
+          <h2>Choose Format</h2>
+        </div>
+        
+        <div class="format-tabs" role="tablist" aria-label="Format type">
+          <button class="format-tab active" role="tab" aria-selected="true" data-format="video">Video</button>
+          <button class="format-tab" role="tab" aria-selected="false" data-format="audio">Audio Only</button>
+        </div>
+
+        <div class="format-panels">
+          <div class="format-panel active" id="videoPanel" role="tabpanel">
+            <p class="panel-description">Select video quality and format</p>
+            <div class="quality-grid" id="videoQualities"></div>
+          </div>
+          <div class="format-panel hidden" id="audioPanel" role="tabpanel">
+            <p class="panel-description">Select audio quality and format</p>
+            <div class="quality-grid" id="audioQualities"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="download-card glass-card hidden" id="downloadCard">
+        <div class="download-progress" id="downloadProgress">
+          <div class="progress-ring">
+            <svg viewBox="0 0 80 80">
+              <circle class="progress-bg" cx="40" cy="40" r="36"/>
+              <circle class="progress-fill" cx="40" cy="40" r="36" stroke-dasharray="226" stroke-dashoffset="226"/>
+            </svg>
+            <span class="progress-percent" id="progressPercent">0%</span>
+          </div>
+          <div class="progress-info">
+            <p class="progress-status" id="progressStatus">Preparing download...</p>
+            <p class="progress-details" id="progressDetails"></p>
+          </div>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+        </div>
+        <div class="download-complete hidden" id="downloadComplete">
+          <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h3>Download Ready</h3>
+          <p>Your file is ready to save</p>
+          <a class="glass-btn primary-btn" id="saveBtn" href="#" download>
+            <span class="btn-text">Save File</span>
+          </a>
+          <button class="glass-btn secondary-btn" id="downloadAnother">Download Another</button>
+        </div>
+        <div class="download-error hidden" id="downloadError">
+          <div class="error-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h3>Download Failed</h3>
+          <p id="errorMessage">Something went wrong</p>
+          <button class="glass-btn primary-btn" id="retryBtn">Try Again</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="glass-footer">
+      <p>For personal use only • Respect copyright laws</p>
+      <div class="footer-links">
+        <a href="#" target="_blank" rel="noopener">Privacy</a>
+        <span class="divider"></span>
+        <a href="#" target="_blank" rel="noopener">Terms</a>
+        <span class="divider"></span>
+        <a href="#" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </footer>
+  </main>
+
+  <div class="info-modal glass-modal hidden" id="infoModal">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content glass-card">
+      <button class="modal-close" id="modalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2>About YT Glass</h2>
+      <div class="modal-body">
+        <p>YT Glass is a client-side YouTube downloader with a liquid glass interface.</p>
+        <h3>Features</h3>
+        <ul>
+          <li>Download videos up to 4K resolution</li>
+          <li>Extract audio as MP3, M4A, or OPUS</li>
+          <li>Support for Shorts, playlists, and Music</li>
+          <li>No server-side processing — runs entirely in browser</li>
+        </ul>
+        <h3>Note</h3>
+        <p>Due to browser security (CORS), direct downloads may not work for all videos. For full functionality, use with a local proxy or backend service.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="yt-glass.js"></script>
+</body>
+</html>
